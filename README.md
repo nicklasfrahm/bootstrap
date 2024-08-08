@@ -7,7 +7,7 @@ Bootstrap is a simple script to install common development tools on a fresh Ubun
 We assume that the user has sudo privileges and the `wget` and `bash` are the only external dependencies.
 
 ```bash
-wget -O - -o /dev/null https://raw.githubusercontent.com/nicklasfrahm/bootstrap/main/bootstrap.sh | sudo bash
+wget -O - -o /dev/null https://raw.githubusercontent.com/nicklasfrahm/bootstrap/main/bootstrap.sh | bash
 ```
 
 It will install the following tools:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: wget -O - -o /dev/null https://raw.githubusercontent.com/nicklasfrahm/bootstrap/main/bootstrap.sh | sudo bash
+# Usage: wget -O - -o /dev/null https://raw.githubusercontent.com/nicklasfrahm/bootstrap/main/bootstrap.sh | bash
 
 set -eou pipefail
 
@@ -15,13 +15,6 @@ print_error() {
     echo -e "${red}err: ${reset}$1"
 }
 
-check_root() {
-    if [ "$EUID" -ne 0 ]; then
-        print_error "script must be run as root or using sudo"
-        exit 1
-    fi
-}
-
 ensure_apt_packages() {
     desired_packages="$*"
 
@@ -35,25 +28,33 @@ ensure_apt_packages() {
 
     if [ ${#missing_packages[@]} -gt 0 ]; then
         print_info "Installing missing packages ..."
-        apt update
-        apt install -y "${missing_packages[@]}"
+        sudo apt update
+        sudo apt install -y "${missing_packages[@]}"
     fi
 }
 
-install_gvm() {
+ensure_gvm() {
     print_info "Installing gvm ..."
 
-    ensure_apt_packages "curl" "bison"
+    if [ ! -d "$HOME/.gvm" ]; then
 
-    bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+        ensure_apt_packages "curl" "bison"
+
+        bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+
+        # It will only be available after installation,
+        # so this avoids the shellcheck warning.
+        # shellcheck source=/dev/null
+        source "$HOME/.gvm/scripts/gvm"
+    fi
+
+    print_info "Installing gvm ... done"
 }
 
 main() {
     print_info "Bootstrapping developer tools ..."
 
-    check_root
-
-    install_gvm
+    ensure_gvm
 }
 
 main "$@"
