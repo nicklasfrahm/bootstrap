@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: wget -O - -o /dev/null https://raw.githubusercontent.com/nicklasfrahm/bootstrap/main/bootstrap.sh | bash
 
-set -eou pipefail
+set -xeou pipefail
 
 print_info() {
     green='\033[0;32m'
@@ -51,10 +51,55 @@ ensure_gvm() {
     print_info "Installing gvm ... done"
 }
 
+ensure_go() {
+    print_info "Installing go ..."
+
+    go_version_regex='go[0-9]+(\.[0-9]+){1,2}$'
+
+    # List all go version and install the latest stable.
+    stable_version=$(gvm listall | grep -oE "${go_version_regex}" | sort -V | tail -n 1)
+
+    gvm install "$stable_version" -B
+
+    # HACK: Avoid this issue: https://github.com/moovweb/gvm/issues/188
+    gvm use "$stable_version" --default >/dev/null || true
+
+    # Remove all other installed versions.
+    mapfile -t installed_versions < <(gvm list | grep -oE "${go_version_regex}")
+
+    for installed_version in "${installed_versions[@]}"; do
+        if [ "$installed_version" == "$stable_version" ]; then
+            continue
+        fi
+
+        # HACK: Avoid this issue: https://github.com/moovweb/gvm/issues/188
+        gvm use "$installed_version" >/dev/null || true
+        go clean -modcache
+        # HACK: Avoid this issue: https://github.com/moovweb/gvm/issues/188
+        gvm use "$stable_version" >/dev/null || true
+
+        gvm uninstall "$installed_version"
+    done
+
+    print_info "Installing go ... done"
+}
+
+ensure_arkade() {
+    print_info "Installing arkade ..."
+
+    if ! command -v arkade &>/dev/null; then
+        curl -sLS https://get.arkade.dev | sudo sh
+    fi
+
+    print_info "Installing arkade ... done"
+}
+
 main() {
     print_info "Bootstrapping developer tools ..."
 
     ensure_gvm
+    ensure_go
+    ensure_arkade
 }
 
 main "$@"
