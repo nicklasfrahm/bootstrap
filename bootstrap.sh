@@ -101,12 +101,25 @@ ensure_arkade() {
     print_info "Installing arkade ... done"
 }
 
+ensure_docker() {
+    print_info "Installing docker ..."
+
+    if ! command -v docker &>/dev/null; then
+        wget -O - -o /dev/null https://get.docker.com | sudo sh
+        sudo usermod -aG docker "$USER"
+        exec sudo -E -u "$USER" "$SHELL"
+    fi
+
+    print_info "Installing docker ... done"
+}
+
 main() {
     print_info "Installing developer tools ..."
 
     ensure_gvm
     ensure_go
     ensure_arkade
+    ensure_docker
 }
 
 main "$@"
