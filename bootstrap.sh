@@ -29,7 +29,7 @@ ensure_apt_packages() {
 
     for desired_package in $desired_packages; do
         if ! dpkg -l | grep -q "$desired_package"; then
-            missing_packages+=("$package")
+            missing_packages+=("$desired_package")
         fi
     done
 
@@ -38,17 +38,6 @@ ensure_apt_packages() {
         apt update
         apt install -y "${missing_packages[@]}"
     fi
-}
-
-install_apt_packages() {
-    print_info "Installing apt packages ..."
-    packages=(
-        "curl"
-        "bison"
-    )
-    sudo apt update
-    sudo apt upgrade -y
-    sudo apt install -y "${packages[@]}"
 }
 
 install_gvm() {
